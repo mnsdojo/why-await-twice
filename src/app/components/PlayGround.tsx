@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { HelpCircle, X, PlayCircle, StopCircle } from "lucide-react";
 
 interface FetchState {
@@ -31,7 +31,7 @@ function PlayGround() {
 
     try {
       // First await - headers
-      const response = await fetch("/data.json");
+      const response = await fetch("/api/stream");
       const headerTime = performance.now();
 
       setFetchState((prev) => ({
@@ -61,6 +61,8 @@ function PlayGround() {
       }));
     } catch (error) {
       console.error("Fetch error:", error);
+    } finally {
+      setFetchState((prev) => ({ ...prev, loadingStage: "complete" }));
     }
   };
 
@@ -185,40 +187,6 @@ function PlayGround() {
             </button>
 
             <h3 className="text-2xl font-bold mb-4">Server Implementation</h3>
-
-            <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-auto">
-              <code className="text-sm">{`const http = require("http")
-const fs = require("fs")
-const path = require("path")
-
-const server = http.createServer((req, res) => {
-    // serve JSON, but *slowly*
-    if (req.method === "GET" && req.url === "/json") {
-        res.writeHead(200, { "Content-Type": "application/json" })
-        
-        // set up a readable stream
-        const filePath = path.join(__dirname, "data.json")
-        const stream = fs.createReadStream(filePath, { encoding: "utf8" })
-        
-        // read the stream one byte at a time and send it to the client
-        stream.on("readable", function () {
-            const interval = setInterval(() => {
-                const chunk = stream.read(1)
-                if (chunk !== null) {
-                    res.write(chunk)
-                } else {
-                    clearInterval(interval)
-                    res.end()
-                }
-            }, 2) // <--- slow! 2ms delay per byte
-        })
-        return
-    }
-
-    res.writeHead(404, { "Content-Type": "text/plain" })
-    res.end("Not Found")
-})`}</code>
-            </pre>
 
             <div className="mt-4 p-4 bg-emerald-50 rounded-lg text-emerald-700">
               <p>This server demonstrates why we need two awaits by:</p>
